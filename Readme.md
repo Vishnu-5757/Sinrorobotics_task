@@ -21,7 +21,21 @@ A comprehensive task management platform built with Python and Django. This proj
 * **Database:** SQLite (Development)
 
 ## 🚦 Getting Started
+##  Super Admin (credentials)
+username : admin 
+password : admin
+
+## Admin (credentials)
+username : vishnu 
+password : 123456
+
+## user (credentials)
+username : Brimstone 
+password : 123456
+
+
+
 
 1. **Clone the repo:**
    ```bash
-   git clone [https://github.com/yourusername/django-task-management-system.git](https://github.com/yourusername/django-task-management-system.git)
+   https://github.com/Vishnu-5757/Sinrorobotics_task.git
