@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Stats Card Styling */
+    .stat-card {
+        border: none;
+        border-radius: 16px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background: #ffffff;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+    }
+
+    .icon-box {
+        width: 54px;
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.5rem;
+    }
+
+    /* Soft Color Palette for Stats */
+    .bg-soft-blue { background-color: #e0f2fe; color: #0369a1; }
+    .bg-soft-green { background-color: #dcfce7; color: #15803d; }
+    .bg-soft-purple { background-color: #f3e8ff; color: #7e22ce; }
+
+    /* Modern Table Header */
+    .dashboard-table thead th {
+        background-color: #f8fafc;
+        border-top: none;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        color: #64748b;
+        padding: 16px;
+    }
+
+    .dashboard-table tbody td {
+        padding: 16px;
+        vertical-align: middle;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* Status Badges */
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+    .status-completed { background: #dcfce7; color: #15803d; }
+    .status-progress { background: #fef9c3; color: #854d0e; }
+    .status-pending { background: #f1f5f9; color: #475569; }
+
+    .btn-report {
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+    }
+</style>
+
+<div class="mb-5">
+    <div class="d-flex align-items-center mb-1">
+        <h2 class="fw-bold text-dark mb-0 me-3">Welcome back, {{ request.user.username }}! 👋</h2>
+        
+        {# Role Badges #}
+        {% if request.user.role == 'superadmin' %}
+            <span class="badge rounded-pill bg-danger-soft text-danger border border-danger px-3 py-2">
+                <i class="bi bi-shield-check me-1"></i> Super Admin
+            </span>
+        {% elif request.user.role == 'admin' %}
+            <span class="badge rounded-pill bg-primary-soft text-primary border border-primary px-3 py-2">
+                <i class="bi bi-person-badge me-1"></i> Admin
+            </span>
+        {% else %}
+            <span class="badge rounded-pill bg-success-soft text-success border border-success px-3 py-2">
+                <i class="bi bi-person me-1"></i> User
+            </span>
+        {% endif %}
+    </div>
+
+    <p class="text-muted">
+        {% if request.user.role == 'user' %}
+            Check your tasks and update your progress for the day.
+        {% else %}
+            Here’s a quick overview of your team's progress and assignments.
+        {% endif %}
+    </p>
+</div>
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card stat-card shadow-sm p-3">
+            <div class="card-body d-flex align-items-center">
+                <div class="icon-box bg-soft-blue me-3">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-1 fw-medium">Managed Tasks</h6>
+                    <h3 class="fw-bold mb-0">{{ tasks.count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card shadow-sm p-3">
+            <div class="card-body d-flex align-items-center">
+                <div class="icon-box bg-soft-green me-3">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-1 fw-medium">Managed Users</h6>
+                    <h3 class="fw-bold mb-0">{{ managed_users.count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card shadow-sm p-3">
+            <div class="card-body d-flex align-items-center">
+                <div class="icon-box bg-soft-purple me-3">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-1 fw-medium">System Status</h6>
+                    <h3 class="fw-bold mb-0 text-success" style="font-size: 1.2rem;">Active</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
+    <div class="card-header bg-white py-3 border-0">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-list-task me-2 text-primary"></i>Recent Task Assignments</h5>
+            <span class="badge bg-light text-dark fw-normal">{{ tasks.count }} tasks total</span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover dashboard-table mb-0">
+    <thead>
+        <tr>
+            <th>Task Title</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>Due Date</th>
+            {# Only render the header if the user is an Admin/SuperAdmin #}
+            {% if request.user.role != 'user' %}
+                <th class="text-end">Report</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>
+                <span class="fw-semibold text-dark">{{ task.title }}</span>
+            </td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; font-size: 0.7rem; font-weight: bold; border: 1px solid #e2e8f0;">
+                        {{ task.assigned_to.username|slice:":1"|upper }}
+                    </div>
+                    {{ task.assigned_to.username }}
+                </div>
+            </td>
+            <td>
+                {% if task.status == 'completed' %}
+                    <span class="badge-status status-completed">Completed</span>
+                {% elif task.status == 'in_progress' %}
+                    <span class="badge-status status-progress">In Progress</span>
+                {% else %}
+                    <span class="badge-status status-pending">Pending</span>
+                {% endif %}
+            </td>
+            <td class="text-muted">
+                <i class="bi bi-calendar3 me-1"></i> {{ task.due_date|date:"M d, Y"|default:"N/A" }}
+            </td>
+
+            {# The Fix: Wrap the entire <td>, not just the content inside it #}
+            {% if request.user.role != 'user' %}
+            <td class="text-end">
+                {% if task.status == 'completed' %}
+                    <a href="{% url 'task_detail' task.pk %}" class="btn btn-sm btn-outline-primary btn-report">
+                        <i class="bi bi-file-earmark-text me-1"></i> View Report
+                    </a>
+                {% else %}
+                    <span class="text-muted small" style="font-style: italic;">Awaiting...</span>
+                {% endif %}
+            </td>
+            {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+            {# Dynamic colspan: 5 columns for Admin, 4 columns for User #}
+            <td colspan="{% if request.user.role != 'user' %}5{% else %}4{% endif %}" class="text-center py-5 text-muted">
+                <i class="bi bi-clipboard-x d-block fs-1 mb-2"></i>
+                No tasks found in your scope.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+    </div>
+</div>
+{% endblock %}

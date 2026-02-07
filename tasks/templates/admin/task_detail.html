@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  
+    .viewport-wrapper {
+        height: calc(100vh - 120px); 
+        display: flex;
+        gap: 20px;
+        overflow: hidden; 
+    }
+
+    .summary-panel {
+        flex: 0 0 350px;
+        background: #ffffff;
+        border-radius: 24px;
+        display: flex;
+        flex-direction: column;
+        padding: 2rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+    }
+    .content-panel {
+        flex: 1;
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+    }
+
+    .scroll-area {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 15px;
+        margin-top: 1.5rem;
+    }
+
+
+    .scroll-area::-webkit-scrollbar { width: 6px; }
+    .scroll-area::-webkit-scrollbar-track { background: #f1f5f9; }
+    .scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    .data-chip {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .report-badge {
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        padding: 5px 12px;
+        border-radius: 6px;
+    }
+
+    .meta-text {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 2px;
+    }
+
+    .main-val {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 1rem;
+    }
+
+    .btn-action-sm {
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 8px 16px;
+    }
+</style>
+
+<div class="viewport-wrapper">
+    
+    <aside class="summary-panel">
+        <div class="mb-4">
+            <a href="javascript:history.back()" class="text-decoration-none small fw-bold text-primary">
+                <i class="bi bi-arrow-left me-1"></i> Back
+            </a>
+        </div>
+
+        <div class="mb-4">
+            <span class="report-badge bg-success text-white mb-2 d-inline-block">COMPLETED TASK</span>
+            <h3 class="fw-bold text-dark">{{ task.title }}</h3>
+        </div>
+
+        <div class="data-chip">
+            <div class="meta-text">Assigned To</div>
+            <div class="main-val">{{ task.assigned_to.username }}</div>
+        </div>
+
+        <div class="data-chip" style="border-left-color: #10b981;">
+            <div class="meta-text">Time Invested</div>
+            <div class="main-val">{{ task.worked_hours }} Hours</div>
+        </div>
+
+        <div class="data-chip" style="border-left-color: #6366f1;">
+            <div class="meta-text">Finished On</div>
+            <div class="main-val">{{ task.created_at|date:"M d, Y" }}</div>
+        </div>
+
+        <div class="mt-auto">
+            <a href="{% url 'dashboard' %}" class="btn btn-primary w-100 btn-action-sm">
+                Return to Dashboard
+            </a>
+        </div>
+    </aside>
+
+    <main class="content-panel">
+        <div class="d-flex justify-content-between align-items-center pb-3 border-bottom">
+            <h5 class="fw-bold mb-0 text-secondary">Final Submission Report</h5>
+        </div>
+
+        <div class="scroll-area">
+            <div style="line-height: 1.8; color: #334155; font-size: 1.05rem;">
+                {% if task.completion_report %}
+                    {{ task.completion_report|linebreaks }}
+                {% else %}
+                    <div class="text-center mt-5 text-muted">
+                        <i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>
+                        No report text provided.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+</div>
+{% endblock %}

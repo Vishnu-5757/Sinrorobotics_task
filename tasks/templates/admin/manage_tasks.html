@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Table Styling */
+    .task-management-card {
+        border-radius: 16px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .task-table thead th {
+        background-color: #f8fafc;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        color: #64748b;
+        border-top: none;
+        padding: 18px 20px;
+    }
+
+    .task-table tbody td {
+        padding: 18px 20px;
+        vertical-align: middle;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* Soft Status Badges */
+    .badge-soft {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+    .badge-completed { background: #dcfce7; color: #15803d; }
+    .badge-progress { background: #fef9c3; color: #854d0e; }
+    .badge-pending { background: #f1f5f9; color: #475569; }
+
+    /* Action Buttons */
+    .btn-action-group .btn {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        margin-left: 4px;
+        transition: all 0.2s;
+    }
+
+    /* Hours Tag */
+    .hours-tag {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #475569;
+    }
+
+    .btn-create-task {
+        background: #3b82f6;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+</style>
+<div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">
+            {% if request.user.role == 'user' %}My Tasks{% else %}All Tasks Management{% endif %}
+        </h2>
+        <p class="text-muted mb-0">
+            {% if request.user.role == 'user' %}View your assigned work and submit progress reports.{% else %}Monitor, edit, and track progress of every active task.{% endif %}
+        </p>
+    </div>
+    
+    {% if request.user.role != 'user' %}
+    <a href="{% url 'task_create' %}" class="btn btn-primary btn-create-task">
+        <i class="bi bi-plus-lg me-2"></i> Create New Task
+    </a>
+    {% endif %}
+</div>
+
+<div class="card task-management-card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover task-table mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 35%;">Task Details</th>
+                    <th>Assignee</th>
+                    <th>Status</th>
+                    <th>Efficiency</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="me-3 text-primary">
+                                <i class="bi bi-file-earmark-text fs-4"></i>
+                            </div>
+                            <div>
+                                <span class="fw-bold d-block text-dark">{{ task.title }}</span>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar-event me-1"></i> Due: {{ task.due_date|date:"M d, Y"|default:"No date" }}
+                                </small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-soft-blue text-primary d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 28px; height: 28px; font-size: 0.7rem; background: #eff6ff;">
+                                {{ task.assigned_to.username|slice:":1"|upper }}
+                            </div>
+                            <span class="text-secondary small fw-medium">{{ task.assigned_to.username }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if task.status == 'completed' %}
+                            <span class="badge-soft badge-completed">Completed</span>
+                        {% elif task.status == 'in_progress' %}
+                            <span class="badge-soft badge-progress">In Progress</span>
+                        {% else %}
+                            <span class="badge-soft badge-pending">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if task.worked_hours %}
+                            <span class="hours-tag"><i class="bi bi-clock-history me-1"></i>{{ task.worked_hours }}h</span>
+                        {% else %}
+                            <span class="text-muted small">--</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-action-group">
+                            <a href="{% url 'task_update' task.pk %}" 
+                               class="btn {% if request.user.role == 'user' %}btn-success{% else %}btn-outline-primary{% endif %}" 
+                               title="{% if request.user.role == 'user' %}Submit Report{% else %}Edit Task{% endif %}">
+                                <i class="bi {% if request.user.role == 'user' %}bi-clipboard-check{% else %}bi-pencil-square{% endif %}"></i>
+                            </a>
+                            
+                           {% if task.status == 'completed' and request.user.role != 'user' %}
+    <a href="{% url 'task_detail' task.pk %}" class="btn btn-info text-white" title="View Report">
+        <i class="bi bi-journal-check"></i>
+    </a>
+{% endif %}
+                            
+                            {% if request.user.role != 'user' %}
+                            <a href="{% url 'task_delete' task.pk %}" class="btn btn-outline-danger" title="Delete Task" onclick="return confirm('Are you sure you want to delete this task?')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="bi bi-clipboard2-x fs-1 mb-2 d-block"></i>
+                            <p class="mb-0">No tasks assigned to you.</p>
+                            {% if request.user.role != 'user' %}
+                            <a href="{% url 'task_create' %}" class="btn btn-link btn-sm mt-2">Create your first task</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

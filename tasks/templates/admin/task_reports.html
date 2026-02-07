@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .page-header {
+        margin-bottom: 2.5rem;
+    }
+
+    /* Card Styling */
+    .report-card {
+        border: none;
+        border-radius: 20px;
+        background: #ffffff;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .report-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    /* Top Accent Bar */
+    .report-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #10b981, #34d399); /* Emerald Green */
+    }
+
+    .report-card-body {
+        padding: 2rem;
+    }
+
+    /* Time Badge */
+    .time-badge {
+        background: #ecfdf5;
+        color: #059669;
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* User Avatar Initial */
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        background: #f1f5f9;
+        color: #64748b;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .report-title {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 1.15rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+
+    .report-preview {
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 12px;
+        margin-top: 15px;
+        border-left: 3px solid #e2e8f0;
+    }
+
+    .btn-view-report {
+        background: #ffffff;
+        color: #10b981;
+        border: 2px solid #10b981;
+        border-radius: 12px;
+        font-weight: 600;
+        padding: 10px;
+        transition: all 0.2s;
+    }
+
+    .btn-view-report:hover {
+        background: #10b981;
+        color: #ffffff;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #ffffff;
+        border-radius: 24px;
+        color: #94a3b8;
+    }
+</style>
+
+<div class="container-fluid px-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Task Reports</h2>
+            <p class="text-muted">Review and analyze completed work submissions.</p>
+        </div>
+        <div class="bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold small">
+            <i class="bi bi-check-all me-1"></i> {{ reports.count }} Tasks Completed
+        </div>
+    </div>
+
+    <div class="row">
+        {% for task in reports %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card report-card shadow-sm h-100">
+                <div class="report-card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="time-badge">
+                            <i class="bi bi-clock-history"></i> {{ task.worked_hours }} hrs
+                        </div>
+                        <div class="avatar-sm" title="Assigned to {{ task.assigned_to.username }}">
+                            {{ task.assigned_to.username|slice:":1"|upper }}
+                        </div>
+                    </div>
+
+                    <h5 class="report-title">{{ task.title }}</h5>
+                    <div class="d-flex align-items-center text-muted small mb-3">
+                        <i class="bi bi-calendar-check me-1 text-success"></i>
+                        Finished {{ task.created_at|date:"M d, Y" }}
+                    </div>
+
+                    <div class="report-preview flex-grow-1">
+                        <small class="text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem; color: #94a3b8;">Submission Summary</small>
+                        {{ task.completion_report|truncatewords:20|default:"No details provided for this completion." }}
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'task_detail' task.pk %}" class="btn btn-view-report w-100">
+                            Full Analysis <i class="bi bi-arrow-right-short ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state shadow-sm">
+                <i class="bi bi-clipboard-x display-4 mb-3 d-block"></i>
+                <h4>No reports available</h4>
+                <p>When users complete tasks and submit reports, they will appear here.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

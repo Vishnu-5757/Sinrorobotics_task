@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .split-container {
+        display: flex;
+        background: #ffffff;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+        min-height: 600px;
+        margin-top: 1rem;
+    }
+
+    /* Left Side: Summary & Branding */
+    .form-sidebar {
+        flex: 0 0 320px;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        padding: 3rem 2rem;
+        color: white;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Right Side: Scrollable Form Area */
+    .form-content {
+        flex: 1;
+        padding: 3rem;
+        background: #ffffff;
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: #64748b;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.4rem;
+    }
+
+    input, select, textarea {
+        background: #f8fafc;
+        border: 2px solid #f1f5f9;
+        border-radius: 12px;
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        width: 100%;
+    }
+
+    input:focus, select:focus, textarea:focus {
+        background: #ffffff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05);
+        outline: none;
+    }
+
+    /* Compact UI Elements */
+    .section-header {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-save-compact {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+    .btn-save-compact:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
+    }
+
+    .btn-back:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(-3px);
+    }
+
+    .errorlist {
+        color: #ef4444;
+        font-size: 0.8rem;
+        list-style: none;
+        padding: 0;
+        margin-top: 5px;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="split-container">
+        <div class="form-sidebar">
+            <div class="mb-4">
+                <a href="{% url 'manage_tasks' %}" class="btn-back">
+                    <i class="bi bi-arrow-left-short"></i> Back to Task List
+                </a>
+            </div>
+            
+            <div class="mb-4">
+                <h2 class="fw-bold">{{ title }}</h2>
+                <p class="text-white-50">
+                    {% if request.user.role == 'user' %}
+                        Submit your completion report and worked hours for review.
+                    {% else %}
+                        Assign work, set deadlines, and track completion in one view.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="form-content">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="section-header">
+                    <i class="bi bi-info-circle me-2"></i> General Information
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <label class="form-label">Task Title</label>
+                        {{ form.title }}
+                        {{ form.title.errors }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Detailed Description</label>
+                        {{ form.description }}
+                        {{ form.description.errors }}
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <i class="bi bi-person-badge me-2"></i> Assignment
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+        <label class="form-label">Assign To</label>
+        {% if request.user.role == 'user' %}
+            <div class="form-control bg-light" style="cursor: not-allowed; opacity: 0.8;">
+                {{ task.assigned_to.username|default:"Not Assigned" }}
+            </div>
+            <input type="hidden" name="assigned_to" value="{{ task.assigned_to.id }}">
+        {% else %}
+            {{ form.assigned_to }}
+        {% endif %}
+        {{ form.assigned_to.errors }}
+    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Deadline</label>
+                        {{ form.due_date }}
+                        {{ form.due_date.errors }}
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Workflow Status</label>
+                        {{ form.status }}
+                        {{ form.status.errors }}
+                    </div>
+                </div>
+
+                {% if form.instance.pk and request.user.role == 'user' %}
+    <div class="section-header text-primary">
+        <i class="bi bi-journal-check me-2"></i> Completion Report
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-12">
+            <label class="form-label">Worked Hours</label>
+            {{ form.worked_hours }}
+            {{ form.worked_hours.errors }}
+            <small class="text-muted d-block mt-1">Specify total time spent (e.g., 4.5)</small>
+        </div>
+        <div class="col-12">
+            <label class="form-label">Report Details</label>
+            {{ form.completion_report }}
+            {{ form.completion_report.errors }}
+        </div>
+    </div>
+{% endif %}
+
+                <div class="row mt-5">
+                    <div class="col-md-8">
+                        <button type="submit" class="btn-save-compact">
+                            <i class="bi bi-check2-circle me-2"></i> 
+                            {% if request.user.role == 'user' %}Update Report{% else %}Update Task{% endif %}
+                        </button>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center justify-content-center">
+                        <a href="{% url 'manage_tasks' %}" class="text-muted small text-decoration-none fw-bold">Cancel Changes</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

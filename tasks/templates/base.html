@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --sidebar-bg: #1e293b;
+            --accent-color: #3b82f6;
+            --text-muted: #94a3b8;
+            --body-bg: #f1f5f9;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: var(--body-bg);
+            color: #334155;
+        }
+
+        /* Sidebar Styling */
+        .sidebar { 
+            min-height: 100vh; 
+            background: var(--sidebar-bg); 
+            color: white; 
+            padding: 24px 15px;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .sidebar h4 {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            padding-left: 15px;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar a { 
+            color: var(--text-muted); 
+            text-decoration: none; 
+            display: flex;
+            align-items: center;
+            padding: 12px 15px; 
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .sidebar a i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .sidebar a:hover { 
+            background: rgba(255, 255, 255, 0.05); 
+            color: white; 
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Content Area */
+        .content { 
+            padding: 40px; 
+        }
+
+        .card { 
+            border: none; 
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+            background: white;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+        }
+
+        /* Quick Stat Cards (Bonus Utility) */
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            background: white;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 sidebar d-flex flex-column">
+                <h4><i class="bi bi-layers-fill me-2"></i>TaskAdmin</h4>
+                
+                <div class="nav-links">
+    <a href="{% url 'dashboard' %}" 
+       class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    
+   {% if request.user.is_superadmin %}
+    <a href="{% url 'manage_users' %}" 
+       class="{% if request.resolver_match.url_name == 'manage_users' or 'user' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-people"></i> Manage Users
+    </a>
+{% endif %}
+
+<a href="{% url 'manage_tasks' %}" 
+   class="{% if request.resolver_match.url_name == 'manage_tasks' %}active{% endif %}">
+    <i class="bi bi-check2-square"></i> Tasks
+</a>
+
+{% if request.user.role == 'superadmin' or request.user.role == 'admin' %}
+    <a href="{% url 'task_reports' %}" 
+       class="{% if request.resolver_match.url_name == 'task_reports' %}active{% endif %}">
+        <i class="bi bi-file-earmark-text"></i> Task Reports
+    </a>
+{% endif %}
+    
+    
+    
+</div>
+
+                <div class="logout-btn mt-auto">
+                    <a href="{% url 'logout' %}" class="text-danger">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </nav>
+
+            <main class="col-md-9 col-lg-10 content">
+                <header class="d-flex justify-content-end align-items-center mb-4">
+                    <div class="user-profile d-flex align-items-center">
+                        <span class="me-3 text-muted small">{{ request.user.email }}</span>
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                            {{ request.user.username|slice:":1"|upper }}
+                        </div>
+                    </div>
+                </header>
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
